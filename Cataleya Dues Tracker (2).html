@@ -1,0 +1,276 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cataleya Dues Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: app shell - sticky top bar + filter strip, KPI row, chart pair, tabbed unit list */
+:root{
+ --bg:#f3f5f8;--surface:#fff;--surface2:#eef1f5;--ink:#14202e;--ink2:#4a5868;--muted:#7a8796;--line:#dfe4ea;
+ --accent:#1f5fd6;--accent-soft:#e3ecfc;
+ --c-owner:#1f5fd6;--c-tenant:#0f8f7f;--c-vacant:#c77a12;
+ --good:#1a7f4b;--warn:#b86e00;--crit:#c0352b;--crit-soft:#fbe7e5;--warn-soft:#fdf0d9;--good-soft:#dff3e8;
+ --font-d:'Space Grotesk','Inter',system-ui,sans-serif;--font-b:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#0e1621;--surface:#162131;--surface2:#1d2a3c;--ink:#e8eef6;--ink2:#a9b6c6;--muted:#7f8ea1;--line:#27374c;
+ --accent:#6c9cf5;--accent-soft:#1d3157;--c-owner:#6c9cf5;--c-tenant:#3fc2ae;--c-vacant:#e0a050;
+ --good:#4cc58a;--warn:#e0a050;--crit:#f0786d;--crit-soft:#3b2025;--warn-soft:#38301a;--good-soft:#173628;color-scheme:dark}}
+:root[data-theme="dark"]{
+ --bg:#0e1621;--surface:#162131;--surface2:#1d2a3c;--ink:#e8eef6;--ink2:#a9b6c6;--muted:#7f8ea1;--line:#27374c;
+ --accent:#6c9cf5;--accent-soft:#1d3157;--c-owner:#6c9cf5;--c-tenant:#3fc2ae;--c-vacant:#e0a050;
+ --good:#4cc58a;--warn:#e0a050;--crit:#f0786d;--crit-soft:#3b2025;--warn-soft:#38301a;--good-soft:#173628;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:14px;line-height:1.45}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+h1{font:700 18px var(--font-d);margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.icon-btn{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600}
+.filters{display:grid;gap:10px;padding-bottom:12px}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.flabel{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;min-width:62px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:500;color:var(--ink2)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.search{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:8px 12px;color:var(--ink);font:inherit}
+.own{position:relative}.own summary{list-style:none;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;font-size:12.5px;font-weight:500;color:var(--ink2)}.own summary::-webkit-details-marker{display:none}.own[open] summary,.own.has summary{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600}.panel{position:absolute;top:calc(100% + 6px);left:0;z-index:40;width:min(320px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:grid;gap:8px}.panel .search{width:100%;min-width:0}.olist{max-height:240px;overflow:auto;display:grid;gap:2px}.olist label{display:flex;gap:8px;align-items:flex-start;padding:5px 6px;border-radius:8px;font-size:13px;cursor:pointer}.olist label:hover{background:var(--surface2)}.olist input{margin-top:2px;accent-color:var(--accent)}.olist small{color:var(--muted);margin-left:auto;white-space:nowrap}.orow{display:flex;justify-content:space-between}.chip.all{font-weight:600}.sp{flex:1}.apply{border:0;background:var(--accent);color:#fff;font-weight:600;border-radius:10px;padding:8px 18px}:root[data-theme="dark"] .apply{color:#0e1621}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .apply{color:#0e1621}}.apply.dirty{box-shadow:0 0 0 3px var(--accent-soft)}.range{display:flex;align-items:center;gap:10px;flex:1;min-width:220px}
+.range input{flex:1;accent-color:var(--accent)}
+.range output{font-variant-numeric:tabular-nums;font-weight:600;min-width:84px;text-align:right}
+.reset{background:none;border:0;color:var(--accent);font-weight:600;font-size:12.5px;padding:4px}
+main{padding-block:16px 40px;display:grid;gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font:700 26px var(--font-d);letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .n{font-size:12px;color:var(--ink2);margin-top:2px}
+.kpi.hero{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .kpi.hero{color:#0e1621}
+.kpi.hero .l,.kpi.hero .n{color:inherit;opacity:.85}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kpi.hero{color:#0e1621}}
+.charts{display:grid;grid-template-columns:3fr 2fr;gap:12px}
+h2{font:600 14px var(--font-d);margin:0 0 2px}
+.hint{font-size:12px;color:var(--muted);margin-bottom:12px}
+.wb{display:grid;grid-template-columns:54px 1fr 74px;align-items:center;gap:10px;padding:5px 0;border:0;background:none;width:100%;text-align:left;border-radius:8px}
+.wb:hover{background:var(--surface2)}
+.wb.sel .trk i{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent)}
+.wb .nm{font-weight:600;font-size:13px}
+.trk{height:16px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.trk i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0;min-width:2px}
+.wb .am{font-variant-numeric:tabular-nums;text-align:right;font-size:13px;font-weight:600}
+.stack{display:flex;height:22px;gap:2px;margin:6px 0 14px}
+.stack i{display:block;height:100%;min-width:3px;border-radius:4px}
+.leg{display:grid;gap:8px}
+.leg div{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.leg b{width:12px;height:12px;border-radius:3px;display:block}
+.leg span.v{font-variant-numeric:tabular-nums;font-weight:600}
+.leg small{color:var(--muted);font-weight:400;margin-left:4px}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:12px;width:max-content;max-width:100%}
+.tab{border:0;background:none;padding:7px 16px;border-radius:9px;font-weight:600;color:var(--ink2);font-size:13px}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+select{font:inherit;background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.u{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;min-width:0}
+.u .t{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.u .id{font:600 14px var(--font-d)}
+.u .amt{font:700 17px var(--font-d);font-variant-numeric:tabular-nums}
+.u .who{font-size:12.5px;color:var(--ink2);overflow-wrap:anywhere}
+.u .who em{font-style:normal;color:var(--muted)}
+.pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px}
+.p-Owner{background:var(--accent-soft);color:var(--c-owner)}
+.p-Tenant{background:var(--good-soft);color:var(--c-tenant)}
+.p-Vacant{background:var(--warn-soft);color:var(--c-vacant)}
+.band{height:4px;border-radius:2px;background:var(--surface2);overflow:hidden}.band i{display:block;height:100%}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface2);position:sticky;top:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);padding:6px 10px;border-radius:8px;font-size:12px;z-index:50;opacity:0;transition:opacity .1s}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}.kpi .v{font-size:22px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top"><div class="wrap">
+ <div class="bar"><div><h1>Royal Cataleya, Pune</h1><div class="sub">Dues report as of 20 Nov 2026 · <span id="cnt"></span></div></div>
+ <div class="frow"><span class="sub" id="exmsg" role="status"></span><button class="apply" id="export" type="button" hidden>Export PDF</button><button class="icon-btn" id="theme" type="button">Theme</button></div></div>
+ <div class="filters">
+  <div class="frow"><span class="flabel">Wing</span><span id="f-wing" class="frow"></span></div>
+  <div class="frow"><span class="flabel">Occupant</span><span id="f-occ" class="frow"></span></div>
+  <div class="frow"><span class="flabel">Dues</span><span id="f-band" class="frow"></span></div>
+  <div class="frow"><span class="flabel">Owner</span>
+   <details id="ownd" class="own"><summary id="owns">All owners</summary>
+    <div class="panel"><input class="search" id="oq" type="search" placeholder="Find owner name" aria-label="Find owner name">
+     <div class="olist" id="olist"></div>
+     <div class="orow"><button class="reset" id="oall" type="button">Select all</button><button class="reset" id="oclear" type="button">Clear</button></div></div></details>
+   <span class="sp"></span>
+   <button class="reset" id="reset" type="button">Reset</button>
+   <button class="apply" id="apply" type="button">Apply filters</button></div>
+ </div>
+</div></header>
+
+<main class="wrap">
+ <section class="kpis" id="kpis"></section>
+ <section class="charts">
+  <div class="card"><h2>Dues by wing</h2><div class="hint">Select a wing bar to filter by that wing right away</div><div id="wings"></div></div>
+  <div class="card"><h2>Dues by occupant type</h2><div class="hint">Share of total dues in the current selection</div><div id="occ"></div></div>
+ </section>
+ <section>
+  <div class="listhead">
+   <div class="tabs" role="tablist"><button class="tab" role="tab" id="t-cards" aria-selected="true" type="button">Units</button><button class="tab" role="tab" id="t-table" aria-selected="false" type="button">Table</button></div>
+   <label class="sub">Sort <select id="sort"><option value="d">Highest dues</option><option value="a">Lowest dues</option><option value="u">Unit</option></select></label>
+  </div>
+  <div id="list"></div>
+ </section>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script>
+const RAW=[["A wing-101","Royal Group of Develpoers","","Vacant",0,67630,67630],["A wing-103","Chetan Mukesh Badgujar","","Owner",0,2860,2860],["A wing-105","Santosh Vasant Shelar","","Owner",0,12560,12560],["A wing-107","Natharam Devasi","","Vacant",0,15730,15730],["A wing-208","Mangal Kailas Rajwade","","Vacant",0,18810,18810],["A wing-304","Royal Group of Develpoers","","Vacant",0,78310,78310],["A wing-305","Royal Group of Develpoers","","Vacant",0,78310,78310],["A wing-307","Brahmesh Anil Sawant","","Owner",0,11440,11440],["A wing-308","Royal Group of Develpoers","","Vacant",0,78310,78310],["A wing-401","Shivraj Balappa Misal","","Vacant",0,17160,17160],["A wing-402","Mahendra singh","","Owner",0,30000,30000],["A wing-403","Devendra H Kumavat","","Owner",0,2860,2860],["A wing-404","Surendrasingh Rajpurohit","","Owner",0,17160,17160],["A wing-405","Mahendra singh","","Owner",0,4680,4680],["A wing-406","Mahendra singh","","Owner",0,4290,4290],["A wing-407","Birendra Singh","","Owner",0,14300,14300],["B wing-105","Royal Group of Develpoers","","Vacant",0,73970,73970],["B wing-107","Nirajan Raghunath Pawar","","Vacant",0,32020,32020],["B wing-108","Royal Group of Develpoers","","Vacant",0,67630,67630],["B wing-202","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-203","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-205","Royal Group of Develpoers","","Vacant",0,78310,78310],["B wing-206","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-207","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-301","Royal Group of Develpoers","","Vacant",0,78310,78310],["B wing-303","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-305","Royal Group of Develpoers","","Vacant",0,71660,71660],["B wing-306","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-307","Royal Group of Develpoers","","Vacant",0,72570,72570],["B wing-403","Royal Group of Develpoers","","Vacant",0,66230,66230],["B wing-406","Royal Group of Develpoers","","Vacant",0,72260,72260],["B wing-407","Royal Group of Develpoers","","Vacant",0,66230,66230],["B wing-408","Royal Group of Develpoers","","Vacant",0,71970,71970],["C wing-105","Dharmaraj G Andal D","Prakash Bhadke","Tenant",0,12560,12560],["C wing-202","Royal Group of Develpoers","","Vacant",0,72570,72570],["C wing-203","Nazia Imam","Laxmi","Tenant",0,14130,14130],["C wing-206","Royal Group of Develpoers","","Tenant",0,72570,72570],["C wing-307","Ajit Supekar","","Vacant",0,17270,17270],["C wing-402","Royal Group of Develpoers","","Vacant",0,72570,72570],["C wing-403","Royal Group of Develpoers","","Vacant",0,66230,66230],["C wing-404","Royal Group of Develpoers","","Vacant",0,71660,71660],["C wing-407","Royal Group of Develpoers","","Vacant",0,66230,66230],["C wing-408","Royal Group of Develpoers","","Vacant",0,67630,67630],["D wing-107","Royal Group of Develpoers","","Vacant",0,66230,66230],["D wing-201","Royal Group of Develpoers","","Vacant",0,78310,78310],["D wing-203","Royal Group of Develpoers","","Vacant",0,72570,72570],["D wing-204","Royal Group of Develpoers","","Vacant",0,78310,78310],["D wing-308","Santosh Jagdale","Shishir","Tenant",0,3420,3420],["D wing-404","Royal Group of Develpoers","","Vacant",0,71660,71660],["D wing-405","Royal Group of Develpoers","","Vacant",0,71660,71660],["D wing-407","Niraj kumar dinker","","Owner",0,2860,2860],["D wing-408","Shivnath Chaurasiya","","Owner",0,17160,17160],["E wing-107","Anil Shirwale","","Owner",0,12870,12870],["E wing-108","Royal Group of Develpoers","","Vacant",0,71660,71660],["E wing-207","Royal Group of Develpoers","","Vacant",0,47450,47450],["E wing-208","Royal Group of Develpoers","","Vacant",0,71660,71660],["E wing-307","Royal Group of Develpoers","","Vacant",0,66230,66230],["E wing-401","Royal Group of Develpoers","","Vacant",0,71660,71660],["E wing-408","Royal Group of Develpoers","","Vacant",0,71660,71660],["M wing-103","Anil Deoram Satpute","","Owner",0,3570,3570],["M wing-104","Sushil Arjandas Chandiramani","","Vacant",0,15510,15510],["M wing-105","Subhash Shankar Rawlekar","","Vacant",0,32700,32700],["M wing-107","Amar Manik Bhalekar","","Owner",0,3570,3570],["M wing-202","Dipak Sopan Narkhede","","Owner",0,13090,13090],["M wing-208","Anand G Sancheti","","Vacant",0,14300,14300],["M wing-301","Pandurang Deoram Mahajan","Smita Viegas","Tenant",0,14300,14300]];
+const D=RAW.map(r=>({unit:r[0],wing:r[0].split('-')[0].replace(' wing',''),owner:r[1],tenant:r[2],occ:r[3],pen:r[4],led:r[5],tot:r[6]}));
+const BANDS=[['Under ₹5k',0,5000],['₹5k – 20k',5000,20000],['Over ₹20k',20000,1e12]];
+const OCC=['Owner','Tenant','Vacant'],OCOL={Owner:'--c-owner',Tenant:'--c-tenant',Vacant:'--c-vacant'};
+const WINGS=[...new Set(D.map(d=>d.wing))].sort();
+const MAX=Math.ceil(Math.max(...D.map(d=>d.tot))/500)*500;
+let VIEW=[];
+const S={wing:new Set(),occ:new Set(),band:new Set(),owner:new Set(),max:MAX,q:'',sort:'d',view:'cards'};
+const $=id=>document.getElementById(id);
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const short=n=>n>=1e5?'₹'+(n/1e5).toFixed(2).replace(/\.?0+$/,'')+' L':n>=1e3?'₹'+(n/1e3).toFixed(1).replace(/\.0$/,'')+'k':'₹'+n;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const T={wing:new Set(),occ:new Set(),band:new Set(),owner:new Set()};
+const KEYS=Object.keys(T);
+const OWNERS=[...D.reduce((m,d)=>m.set(d.owner,(m.get(d.owner)||0)+1),new Map())].sort((a,b)=>a[0].localeCompare(b[0]));
+function chips(el,items,set){
+ const all=items.every(([k])=>set.has(k));
+ el.innerHTML=`<button type="button" class="chip all" data-all="1" aria-pressed="${all}">All</button>`+items.map(([k,t])=>`<button type="button" class="chip" data-k="${esc(k)}" aria-pressed="${set.has(k)}">${esc(t)}</button>`).join('');
+ el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;if(b.dataset.all){items.forEach(([k])=>all?set.delete(k):set.add(k));renderFilters();return;}const k=b.dataset.k;set.has(k)?set.delete(k):set.add(k);renderFilters();};
+}
+const same=(a,b)=>a.size===b.size&&[...a].every(x=>b.has(x));
+function renderFilters(){
+ chips($('f-wing'),WINGS.map(w=>[w,w+' wing']),T.wing);
+ chips($('f-occ'),OCC.map(o=>[o,o]),T.occ);
+ chips($('f-band'),BANDS.map((b,i)=>[String(i),b[0]]),T.band);
+ const q=$('oq').value.trim().toLowerCase();
+ $('olist').innerHTML=OWNERS.filter(([n])=>!q||n.toLowerCase().includes(q)).map(([n,c])=>`<label><input type="checkbox" value="${esc(n)}" ${T.owner.has(n)?'checked':''}><span>${esc(n)||'(No owner name)'}</span><small>${c} unit${c>1?'s':''}</small></label>`).join('')||'<div class="sub">No owner matches</div>';
+ $('owns').textContent=T.owner.size?T.owner.size+' owner'+(T.owner.size>1?'s':'')+' selected':'All owners';
+ $('ownd').classList.toggle('has',T.owner.size>0);
+ $('apply').classList.toggle('dirty',!KEYS.every(k=>same(T[k],S[k])));
+}
+function pass(d,skip){
+ if(skip!=='wing'&&S.wing.size&&!S.wing.has(d.wing))return false;
+ if(S.occ.size&&!S.occ.has(d.occ))return false;
+ if(S.owner.size&&!S.owner.has(d.owner))return false;
+ if(S.band.size&&![...S.band].some(i=>d.tot>=BANDS[i][1]&&d.tot<BANDS[i][2]))return false;
+ if(d.tot>S.max)return false;
+ if(S.q){const h=(d.unit+' '+d.owner+' '+d.tenant).toLowerCase();if(!h.includes(S.q))return false;}
+ return true;
+}
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+function render(){
+ const rows=D.filter(d=>pass(d));VIEW=rows;
+ $('cnt').textContent=rows.length+' of '+D.length+' units shown';
+ const tot=sum(rows,d=>d.tot),all=sum(D,d=>d.tot),avg=rows.length?tot/rows.length:0,mx=rows.reduce((m,d)=>d.tot>(m?m.tot:-1)?d:m,null);
+ $('kpis').innerHTML=`
+  <div class="card kpi hero"><div class="l">Total outstanding</div><div class="v">${inr(tot)}</div><div class="n">${all?Math.round(tot/all*100):0}% of all dues</div></div>
+  <div class="card kpi"><div class="l">Units with dues</div><div class="v">${rows.length}</div><div class="n">of ${D.length} pending units</div></div>
+  <div class="card kpi"><div class="l">Average per unit</div><div class="v">${inr(avg)}</div><div class="n">across selection</div></div>
+  <div class="card kpi"><div class="l">Highest single due</div><div class="v">${mx?inr(mx.tot):'–'}</div><div class="n">${mx?esc(mx.unit):'No units'}</div></div>`;
+ // wings (ignores wing filter so all bars stay visible; selected ones ringed)
+ const wr=WINGS.map(w=>{const r=D.filter(d=>d.wing===w&&pass(d,'wing'));return{w,t:sum(r,d=>d.tot),n:r.length}});
+ const wm=Math.max(1,...wr.map(x=>x.t));
+ $('wings').innerHTML=wr.map(x=>`<button type="button" class="wb ${S.wing.has(x.w)?'sel':''}" data-w="${x.w}" data-tip="${x.w} wing: ${inr(x.t)} · ${x.n} units"><span class="nm">${x.w} wing</span><span class="trk"><i style="width:${x.t/wm*100}%"></i></span><span class="am">${short(x.t)}</span></button>`).join('');
+ // occupants
+ const or=OCC.map(o=>{const r=rows.filter(d=>d.occ===o);return{o,t:sum(r,d=>d.tot),n:r.length}});
+ $('occ').innerHTML=tot?`<div class="stack">${or.filter(x=>x.t).map(x=>`<i style="width:${x.t/tot*100}%;background:var(${OCOL[x.o]})" data-tip="${x.o}: ${inr(x.t)} · ${x.n} units"></i>`).join('')}</div>
+  <div class="leg">${or.map(x=>`<div><b style="background:var(${OCOL[x.o]})"></b><span>${x.o}<small>${x.n} units</small></span><span class="v">${inr(x.t)} <small>${tot?Math.round(x.t/tot*100):0}%</small></span></div>`).join('')}</div>`:'<div class="empty">No data</div>';
+ // list
+ const s=S.sort;rows.sort((a,b)=>s==='d'?b.tot-a.tot:s==='a'?a.tot-b.tot:a.unit.localeCompare(b.unit,undefined,{numeric:true}));
+ const L=$('list');
+ if(!rows.length)L.innerHTML='<div class="card empty">No units match these filters. Reset filters to see all units.</div>';
+ else if(S.view==='cards')L.innerHTML='<div class="units">'+rows.map(d=>{
+  const c=d.tot>20000?'--crit':d.tot>5000?'--warn':'--good';
+  return `<div class="u"><div class="t"><span class="id">${esc(d.unit)}</span><span class="amt">${inr(d.tot)}</span></div>
+  <div class="who">${esc(d.owner)||'<em>No owner</em>'}${d.tenant&&d.tenant!==d.owner?'<br><em>Tenant:</em> '+esc(d.tenant):''}</div>
+  <div class="t"><span class="pill p-${d.occ}">${d.occ}</span>${d.pen?`<span class="sub">Penalty ${inr(d.pen)}</span>`:''}</div>
+  <div class="band"><i style="width:${Math.min(100,d.tot/MAX*100)}%;background:var(${c})"></i></div></div>`}).join('')+'</div>';
+ else L.innerHTML='<div class="tablewrap"><table><thead><tr><th>Unit</th><th>Owner</th><th>Tenant</th><th>Occupant</th><th class="num">Penalty</th><th class="num">Ledger dues</th><th class="num">Total dues</th></tr></thead><tbody>'+rows.map(d=>`<tr><td><b>${esc(d.unit)}</b></td><td>${esc(d.owner)}</td><td>${esc(d.tenant)}</td><td><span class="pill p-${d.occ}">${d.occ}</span></td><td class="num">${inr(d.pen)}</td><td class="num">${inr(d.led)}</td><td class="num"><b>${inr(d.tot)}</b></td></tr>`).join('')+`</tbody><tfoot><tr><td colspan="6"><b>Total (${rows.length} units)</b></td><td class="num"><b>${inr(tot)}</b></td></tr></tfoot></table></div>`;
+}
+$('wings').onclick=e=>{const b=e.target.closest('.wb');if(!b)return;const w=b.dataset.w;S.wing.has(w)?S.wing.delete(w):S.wing.add(w);T.wing=new Set(S.wing);render();renderFilters();};
+$('sort').onchange=e=>{S.sort=e.target.value;render();};
+$('apply').onclick=()=>{KEYS.forEach(k=>S[k]=new Set(T[k]));$('ownd').open=false;render();renderFilters();};
+$('reset').onclick=()=>{KEYS.forEach(k=>{S[k]=new Set();T[k]=new Set();});$('oq').value='';$('ownd').open=false;render();renderFilters();};
+$('oall').onclick=()=>{const q=$('oq').value.trim().toLowerCase();OWNERS.forEach(([n])=>{if(!q||n.toLowerCase().includes(q))T.owner.add(n)});renderFilters();};
+$('oclear').onclick=()=>{T.owner.clear();renderFilters();};
+$('oq').oninput=renderFilters;
+$('olist').onchange=e=>{const i=e.target;if(i.type!=='checkbox')return;i.checked?T.owner.add(i.value):T.owner.delete(i.value);
+ $('owns').textContent=T.owner.size?T.owner.size+' owner'+(T.owner.size>1?'s':'')+' selected':'All owners';$('ownd').classList.toggle('has',T.owner.size>0);$('apply').classList.toggle('dirty',!KEYS.every(k=>same(T[k],S[k])));};
+function tab(v){S.view=v;$('t-cards').setAttribute('aria-selected',v==='cards');$('t-table').setAttribute('aria-selected',v==='table');render();}
+$('t-cards').onclick=()=>tab('cards');$('t-table').onclick=()=>tab('table');
+$('theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark';};
+const tip=$('tip');
+document.addEventListener('pointermove',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(!t){tip.style.opacity=0;return;}tip.textContent=t.dataset.tip;tip.style.opacity=1;tip.style.left=Math.min(innerWidth-tip.offsetWidth-8,e.clientX+12)+'px';tip.style.top=(e.clientY+14)+'px';});
+const fmt=n=>Math.round(n).toLocaleString('en-IN');
+function buildPdf(){
+ const rows=VIEW.slice().sort((a,b)=>a.unit.localeCompare(b.unit,undefined,{numeric:true}));
+ if(!rows.length)return null;
+ const {jsPDF}=window.jspdf;
+ const ds=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'-');
+ const byW={};rows.forEach(r=>(byW[r.wing]=byW[r.wing]||[]).push(r));
+ const ws=Object.keys(byW).sort(),total=sum(rows,d=>d.tot),filt=KEYS.some(k=>S[k].size);
+ const M=8,W=194,GAP=4,CW=(W-GAP)/2,BLUE=[31,95,214],SOFT=[227,236,252];
+ let doc;
+ for(const fs of [7,6.5,6,5.5,5,4.5]){
+  doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(20,32,46);
+  doc.text('Royal Cataleya Society Dues - Updated on '+ds,M,12);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(100,112,126);
+  doc.text('Pune  |  '+rows.length+' flats with dues  |  Total Rs. '+fmt(total)+(filt?'  |  Filtered view':''),M,16.5);
+  const common={theme:'grid',styles:{font:'helvetica',fontSize:fs,cellPadding:{top:.7,bottom:.7,left:1,right:1},lineColor:[210,216,224],lineWidth:.15,textColor:[20,32,46],overflow:'linebreak'},
+   headStyles:{fillColor:BLUE,textColor:255,fontStyle:'bold'},footStyles:{fillColor:SOFT,textColor:[20,32,46],fontStyle:'bold'},alternateRowStyles:{fillColor:[246,248,251]},
+   margin:{top:8,bottom:6,left:M,right:M},showHead:'everyPage',showFoot:'lastPage'};
+  const rightFrom=n=>({didParseCell:h=>{if(h.column.index>=n)h.cell.styles.halign='right';}});
+  doc.autoTable({...common,startY:19,head:[['Wing','Total Dues (Rs.)','No. of Flats with Dues','% of Society Total']],
+   body:ws.map(w=>{const t=sum(byW[w],d=>d.tot);return[w+' Wing',fmt(t),byW[w].length,(t/total*100).toFixed(1)+'%']}),
+   foot:[['Grand Total',fmt(total),rows.length,'100.0%']],...rightFrom(1)});
+  const cols=[{h:0,w:[],x:M},{h:0,w:[],x:M+CW+GAP}];
+  [...ws].sort((a,b)=>byW[b].length-byW[a].length).forEach(w=>{const c=cols[0].h<=cols[1].h?cols[0]:cols[1];c.w.push(w);c.h+=byW[w].length+4;});
+  const y0=doc.lastAutoTable.finalY+5;
+  for(const c of cols){
+   let y=y0;
+   for(const w of c.w.sort()){
+    const r=byW[w],wt=sum(r,d=>d.tot);
+    doc.setFont('helvetica','bold');doc.setFontSize(fs+1.5);doc.setTextColor(20,32,46);
+    doc.text(w+' Wing  -  '+r.length+' flats  |  Rs. '+fmt(wt),c.x,y+2.5);
+    doc.autoTable({...common,startY:y+3.6,margin:{top:8,bottom:6,left:c.x,right:210-c.x-CW},tableWidth:CW,
+     head:[['Sr. No.','Flat No.','Owner Name','Occupant','Total Dues (Rs.)','% of Wing Dues']],
+     body:r.map((d,i)=>[i+1,d.unit,d.owner||'-',d.occ,fmt(d.tot),(d.tot/wt*100).toFixed(1)+'%']),
+     foot:[[{content:'Wing total ('+r.length+' flats)',colSpan:4},fmt(wt),'100.0%']],
+     columnStyles:{0:{cellWidth:7.5,halign:'center'},1:{cellWidth:14.5},2:{cellWidth:35},3:{cellWidth:12},4:{cellWidth:14},5:{cellWidth:12}},
+     didParseCell:h=>{if(h.column.index>=4)h.cell.styles.halign='right';if(h.section==='head'&&h.column.index===0)h.cell.styles.halign='center';}});
+    y=doc.lastAutoTable.finalY+3.5;
+   }
+  }
+  if(doc.getNumberOfPages()===1)break;
+ }
+ return {doc,ds};
+}
+let DL=null;
+(async()=>{try{DL=await claude.use('downloads');}catch(e){DL=null;}if(DL)$('export').hidden=false;})();
+$('export').onclick=async()=>{
+ const m=$('exmsg');const out=buildPdf();
+ if(!out){m.textContent='No units to export. Reset filters first.';return;}
+ try{await DL.save({filename:'Royal-Cataleya-Society-Dues-'+out.ds+'.pdf',data:out.doc.output('arraybuffer')});m.textContent='PDF ready: '+VIEW.length+' flats, one page.';}
+ catch(e){m.textContent=e&&e.code==='declined'?'Export cancelled.':'Export is not available here.';}
+};
+render();renderFilters();
+</script>
+
+</body></html>
